@@ -1,0 +1,10 @@
+{
+  "name": "paveg/ulid",
+  "version": "0.1.0",
+  "readme": "README.md",
+  "repository": "https://github.com/paveg/ulid",
+  "license": "Apache-2.0",
+  "keywords": ["ulid", "uuid", "identifier"],
+  "description": "ULID (Universally Unique Lexicographically Sortable Identifier) implementation for MoonBit",
+  "source": "src"
+}
