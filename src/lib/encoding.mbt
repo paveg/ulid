@@ -2,14 +2,17 @@
 /// Crockford's Base32 encoding/decoding for ULID
 /// Alphabet: 0123456789ABCDEFGHJKMNPQRSTVWXYZ (excludes I, L, O, U)
 
+///|
 /// The Crockford's Base32 encoding alphabet
 let encoding_chars : String = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
+///|
 /// Encode a 5-bit value (0-31) to a Crockford's Base32 character
 pub fn encode_char(value : Int) -> Char {
   encoding_chars[value].to_int().unsafe_to_char()
 }
 
+///|
 /// Decode a Crockford's Base32 character to a 5-bit value (0-31)
 /// Handles case insensitivity and I/L -> 1, O -> 0 mappings
 pub fn decode_char(c : Char) -> Result[Int, String] {
@@ -50,6 +53,7 @@ pub fn decode_char(c : Char) -> Result[Int, String] {
   }
 }
 
+///|
 /// Encode a 48-bit timestamp to 10 Crockford's Base32 characters
 pub fn encode_timestamp(timestamp : Int64) -> String {
   let buf = StringBuilder::new()
@@ -66,6 +70,7 @@ pub fn encode_timestamp(timestamp : Int64) -> String {
   buf.to_string()
 }
 
+///|
 /// Encode 80-bit randomness (10 bytes) to 16 Crockford's Base32 characters
 pub fn encode_randomness(bytes : FixedArray[Byte]) -> String {
   let chars = FixedArray::make(16, '0')
@@ -77,30 +82,45 @@ pub fn encode_randomness(bytes : FixedArray[Byte]) -> String {
   // Character 0: bits 0-4 of byte 0
   chars[0] = encode_char((bytes[0].to_int() >> 3) & 0x1F)
   // Character 1: bits 5-7 of byte 0 + bits 0-1 of byte 1
-  chars[1] = encode_char(((bytes[0].to_int() & 0x07) << 2) | ((bytes[1].to_int() >> 6) & 0x03))
+  chars[1] = encode_char(
+    ((bytes[0].to_int() & 0x07) << 2) | ((bytes[1].to_int() >> 6) & 0x03),
+  )
   // Character 2: bits 2-6 of byte 1
   chars[2] = encode_char((bytes[1].to_int() >> 1) & 0x1F)
   // Character 3: bit 7 of byte 1 + bits 0-3 of byte 2
-  chars[3] = encode_char(((bytes[1].to_int() & 0x01) << 4) | ((bytes[2].to_int() >> 4) & 0x0F))
+  chars[3] = encode_char(
+    ((bytes[1].to_int() & 0x01) << 4) | ((bytes[2].to_int() >> 4) & 0x0F),
+  )
   // Character 4: bits 4-7 of byte 2 + bit 0 of byte 3
-  chars[4] = encode_char(((bytes[2].to_int() & 0x0F) << 1) | ((bytes[3].to_int() >> 7) & 0x01))
+  chars[4] = encode_char(
+    ((bytes[2].to_int() & 0x0F) << 1) | ((bytes[3].to_int() >> 7) & 0x01),
+  )
   // Character 5: bits 1-5 of byte 3
   chars[5] = encode_char((bytes[3].to_int() >> 2) & 0x1F)
   // Character 6: bits 6-7 of byte 3 + bits 0-2 of byte 4
-  chars[6] = encode_char(((bytes[3].to_int() & 0x03) << 3) | ((bytes[4].to_int() >> 5) & 0x07))
+  chars[6] = encode_char(
+    ((bytes[3].to_int() & 0x03) << 3) | ((bytes[4].to_int() >> 5) & 0x07),
+  )
   // Character 7: bits 3-7 of byte 4
   chars[7] = encode_char(bytes[4].to_int() & 0x1F)
 
   // Second half (bytes 5-9)
   chars[8] = encode_char((bytes[5].to_int() >> 3) & 0x1F)
-  chars[9] = encode_char(((bytes[5].to_int() & 0x07) << 2) | ((bytes[6].to_int() >> 6) & 0x03))
+  chars[9] = encode_char(
+    ((bytes[5].to_int() & 0x07) << 2) | ((bytes[6].to_int() >> 6) & 0x03),
+  )
   chars[10] = encode_char((bytes[6].to_int() >> 1) & 0x1F)
-  chars[11] = encode_char(((bytes[6].to_int() & 0x01) << 4) | ((bytes[7].to_int() >> 4) & 0x0F))
-  chars[12] = encode_char(((bytes[7].to_int() & 0x0F) << 1) | ((bytes[8].to_int() >> 7) & 0x01))
+  chars[11] = encode_char(
+    ((bytes[6].to_int() & 0x01) << 4) | ((bytes[7].to_int() >> 4) & 0x0F),
+  )
+  chars[12] = encode_char(
+    ((bytes[7].to_int() & 0x0F) << 1) | ((bytes[8].to_int() >> 7) & 0x01),
+  )
   chars[13] = encode_char((bytes[8].to_int() >> 2) & 0x1F)
-  chars[14] = encode_char(((bytes[8].to_int() & 0x03) << 3) | ((bytes[9].to_int() >> 5) & 0x07))
+  chars[14] = encode_char(
+    ((bytes[8].to_int() & 0x03) << 3) | ((bytes[9].to_int() >> 5) & 0x07),
+  )
   chars[15] = encode_char(bytes[9].to_int() & 0x1F)
-
   let buf = StringBuilder::new()
   for i = 0; i < 16; i = i + 1 {
     buf.write_char(chars[i])
@@ -108,6 +128,7 @@ pub fn encode_randomness(bytes : FixedArray[Byte]) -> String {
   buf.to_string()
 }
 
+///|
 /// Decode 10 Crockford's Base32 characters to a 48-bit timestamp
 pub fn decode_timestamp(s : String) -> Result[Int64, String] {
   if s.length() != 10 {
@@ -124,6 +145,7 @@ pub fn decode_timestamp(s : String) -> Result[Int64, String] {
   Ok(timestamp)
 }
 
+///|
 /// Decode 16 Crockford's Base32 characters to 80-bit randomness (10 bytes)
 pub fn decode_randomness(s : String) -> Result[FixedArray[Byte], String] {
   if s.length() != 16 {
@@ -152,6 +174,5 @@ pub fn decode_randomness(s : String) -> Result[FixedArray[Byte], String] {
   bytes[7] = ((values[11] << 4) | (values[12] >> 1)).to_byte()
   bytes[8] = ((values[12] << 7) | (values[13] << 2) | (values[14] >> 3)).to_byte()
   bytes[9] = ((values[14] << 5) | values[15]).to_byte()
-
   Ok(bytes)
 }

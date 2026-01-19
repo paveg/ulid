@@ -5,12 +5,14 @@
 /// current system time (runtime-dependent), the time source is injected as
 /// a function parameter.
 
+///|
 /// ULID Generator using injected time source and random generator
 pub struct Generator {
   get_time : () -> Int64
   rand : @random.Rand
 }
 
+///|
 /// Create a new ULID generator
 ///
 /// Parameters:
@@ -20,18 +22,24 @@ pub fn Generator::new(get_time : () -> Int64, rand : @random.Rand) -> Generator 
   { get_time, rand }
 }
 
+///|
 /// Generate a new ULID using current time
 pub fn Generator::generate(self : Generator) -> ULID {
   let timestamp = (self.get_time)()
   self.generate_from_timestamp(timestamp)
 }
 
+///|
 /// Generate a ULID with a specific timestamp
-pub fn Generator::generate_from_timestamp(self : Generator, timestamp : Int64) -> ULID {
+pub fn Generator::generate_from_timestamp(
+  self : Generator,
+  timestamp : Int64,
+) -> ULID {
   let randomness = generate_randomness(self.rand)
   ULID::from_parts(timestamp, randomness)
 }
 
+///|
 /// Generate 80 bits (10 bytes) of randomness
 fn generate_randomness(rand : @random.Rand) -> FixedArray[Byte] {
   let bytes : FixedArray[Byte] = FixedArray::make(10, b'\x00')
@@ -52,10 +60,10 @@ fn generate_randomness(rand : @random.Rand) -> FixedArray[Byte] {
   // Last 2 bytes from r2
   bytes[8] = ((r2 >> 56) & 0xFFUL).to_byte()
   bytes[9] = ((r2 >> 48) & 0xFFUL).to_byte()
-
   bytes
 }
 
+///|
 /// Monotonic ULID Generator
 ///
 /// Generates ULIDs that are guaranteed to be strictly increasing within
@@ -67,8 +75,12 @@ pub struct MonotonicGenerator {
   last_randomness : FixedArray[Byte]
 }
 
+///|
 /// Create a new monotonic ULID generator
-pub fn MonotonicGenerator::new(get_time : () -> Int64, rand : @random.Rand) -> MonotonicGenerator {
+pub fn MonotonicGenerator::new(
+  get_time : () -> Int64,
+  rand : @random.Rand,
+) -> MonotonicGenerator {
   {
     get_time,
     rand,
@@ -77,13 +89,13 @@ pub fn MonotonicGenerator::new(get_time : () -> Int64, rand : @random.Rand) -> M
   }
 }
 
+///|
 /// Generate a new monotonic ULID
 ///
 /// If called multiple times within the same millisecond, the random
 /// component is incremented to ensure strict ordering.
 pub fn MonotonicGenerator::generate(self : MonotonicGenerator) -> ULID {
   let timestamp = (self.get_time)()
-
   let randomness = if timestamp == self.last_time {
     // Same millisecond: increment the randomness
     increment_randomness(self.last_randomness)
@@ -91,16 +103,15 @@ pub fn MonotonicGenerator::generate(self : MonotonicGenerator) -> ULID {
     // New millisecond: generate fresh randomness
     generate_randomness(self.rand)
   }
-
   self.last_time = timestamp
   // Copy randomness to last_randomness
   for i = 0; i < 10; i = i + 1 {
     self.last_randomness[i] = randomness[i]
   }
-
   ULID::from_parts(timestamp, randomness)
 }
 
+///|
 /// Increment the randomness by 1 (with carry propagation)
 fn increment_randomness(randomness : FixedArray[Byte]) -> FixedArray[Byte] {
   let result : FixedArray[Byte] = FixedArray::make(10, b'\x00')
@@ -115,6 +126,5 @@ fn increment_randomness(randomness : FixedArray[Byte]) -> FixedArray[Byte] {
     result[i] = (sum & 0xFF).to_byte()
     carry = sum >> 8
   }
-
   result
 }
