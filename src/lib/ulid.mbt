@@ -76,15 +76,11 @@ pub fn ULID::from_string(s : String) -> Result[ULID, String] {
   }
 
   // Extract timestamp part (first 10 chars)
-  let timestamp_str = try {
-    s[0:10].to_string()
-  } catch {
+  let timestamp_str = s[0:10].to_string() catch {
     _ => return Err("Failed to extract timestamp part")
   }
   // Extract randomness part (last 16 chars)
-  let randomness_str = try {
-    s[10:26].to_string()
-  } catch {
+  let randomness_str = s[10:26].to_string() catch {
     _ => return Err("Failed to extract randomness part")
   }
   match decode_timestamp(timestamp_str) {
